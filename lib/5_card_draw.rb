@@ -28,11 +28,7 @@ class Deck
     suits = [:s,:h,:c,:d]
     numbers = (2..14).to_a
     
-    suits.each do |suit|
-      numbers.each do |number|
-        @cards << Card.new(suit,number)
-      end
-    end
+    @cards = suits.product(numbers).map{|suit,number| Card.new(suit,number)}
     
   end
 
@@ -83,23 +79,22 @@ class Hand
       :royal_flush      => 9  }
   end
   
-  #recursively look for highest different card
+  # recursively look for highest different card
   def compare_imp_hi_card(nums1,nums2)
-    imp1 = imp_hi_card(nums1)
-    imp2 = imp_hi_card(nums2) 
+    imp1,imp2 = imp_hi_card(nums1),imp_hi_card(nums2)
     result = imp1 <=> imp2
     return result if nums1.size == 1 || compare != 0
     compare_imp_hi_card(nums1.delete(imp1),nums2.delete(imp2))
   end
   
-  #find the high card among cards of greatest occurence
+  # find the high card among cards of greatest occurence
   def imp_hi_card(nums)
     counts = []
     nums.uniq.each {|num| counts << nums.count(num)}
     nums.select{|num| nums.count(num) == counts.max}.max
   end
   
-  #pairs(n=2), triples(n=3), quads(n=4)
+  # pairs(n=2), triples(n=3), quads(n=4)
   def n_of_kind?(n)
     flag = false
     numbers.uniq.each {|num| flag = true if numbers.count(num) == n }
@@ -111,21 +106,15 @@ class Hand
   end  
   
   def straight?
-    straights.include?(numbers.sort)
-  end
-  
-  def straights
-    straights = []
-    9.times { |n| straights << [n+2,n+3,n+4,n+5,n+6] }
-    straights + [2,3,4,5,14]
+    numbers.sort == (numbers.first..numbers.first+4).to_a
   end
   
   def numbers
-    cards.map {|card| card.number}
+    cards.map(&:number)
   end
   
   def suits
-    cards.map {|card| card.suit}
+    cards.map(&:suit)
   end
   
   
