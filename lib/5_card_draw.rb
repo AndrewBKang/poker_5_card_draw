@@ -58,24 +58,15 @@ class Hand
     return :two_of_a_kind if n_of_kind?(2) && numbers.uniq = 3
   end
   
+  #compares two hands
   def <=>(hand)
     compare = set_tiers[self.tier] <=> set_tiers[hand.tier]
     return compare unless compare == 0
-    
-    compare_imp_hi_card(self.numbers,hand.numbers)
-    # if high_card_breaks_tie.include?(tier)
-    #   return numbers.max <=> hand.numbers.max
-    # end
+    compare_imp_hi_card(self.numbers.sort,hand.numbers.sort)
   end
   
   
-  
-  
-  
-  
-  
-  
-  protected 
+  protected  
   
   def set_tiers
     { :high_card        => 0,
@@ -90,18 +81,21 @@ class Hand
       :royal_flush      => 9  }
   end
   
+  #recursively look for highest different card
   def compare_imp_hi_card(nums1,nums2)
-    return 0 if nums1.size == 1
-    return imp_hi_card(nums1) <=> imp_hi_card(nums2)
-    
+    compare = imp_hi_card(nums1) <=> imp_hi_card(nums2) 
+    return compare if nums1.size == 1 || compare != 0
+    compare_imp_hi_card(nums1[0..-2],nums2[0..-2])
   end
   
+  #find the high card among cards of greatest occurence
   def imp_hi_card(nums)
     counts = []
-    nums.uniq.each {|card_num| counts << nums.count(card_num)}
-    num.select{|card_num| nums.count(card_num) == counts.max}.max
+    nums.uniq.each {|num| counts << nums.count(num)}
+    nums.select{|num| nums.count(num) == counts.max}.max
   end
   
+  #pairs(n=2), triples(n=3), quads(n=4)
   def n_of_kind?(n)
     flag = false
     numbers.uniq.each {|num| flag = true if numbers.count(num) == n }
