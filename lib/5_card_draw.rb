@@ -27,9 +27,7 @@ class Deck
   def set_cards
     suits = [:s,:h,:c,:d]
     numbers = (2..14).to_a
-    
     @cards = suits.product(numbers).map{|suit,number| Card.new(suit,number)}
-    
   end
 
 end
