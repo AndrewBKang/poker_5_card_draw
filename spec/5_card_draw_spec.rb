@@ -44,11 +44,11 @@ end
 
 describe Hand do
   
-  attr_accessor :s1, :s13, :s12, :s11, :s10, :c10, :s9, :d9, :h9, :s2,
+  attr_accessor :s14, :s13, :s12, :s11, :s10, :c10, :s9, :d9, :h9, :s2,
    :c3, :d4, :s5
   
   before do
-    @s1 = Card.new(:s,1)
+    @s14 = Card.new(:s,14)
     @s13 = Card.new(:s,13)
     @s12 = Card.new(:s,12)
     @s11 = Card.new(:s,11)
@@ -66,13 +66,13 @@ describe Hand do
   
   describe "#cards" do
     it "returns an array of the cards" do
-      Hand.new(s1,s12,s11,s10,h9).cards.should == [s1,s12,s11,s10,h9]
+      Hand.new(s14,s12,s11,s10,h9).cards.should == [s1,s12,s11,s10,h9]
     end
   end
   
   describe "#tier" do
     it "returns high card" do
-      Hand.new(s1,s12,s11,s10,h9).tier.should == :high_card
+      Hand.new(s14,s12,s11,s10,h9).tier.should == :high_card
     end
       
     it "returns pair" do
@@ -80,7 +80,7 @@ describe Hand do
     end
     
     it "returns two pair" do
-      Hand.new(s10,c10,s9,d9,s1).tier.should == :two_pair
+      Hand.new(s10,c10,s9,d9,s14).tier.should == :two_pair
     end
     
     it "returns three of a kind" do
@@ -88,15 +88,15 @@ describe Hand do
     end
     
     it "returns straight" do
-      Hand.new(s1,s13,s12,s11,c10).tier.should == :straight
+      Hand.new(s14,s13,s12,s11,c10).tier.should == :straight
     end
     
     it "returns straight with ace in front" do
-      Hand.new(s1,s2,c3,d4,s5).tier.should == :straight
+      Hand.new(s14,s2,c3,d4,s5).tier.should == :straight
     end
     
     it "returns flush" do
-      Hand.new(s1,s13,s9,s5,s9).tier.should == :flush
+      Hand.new(s14,s13,s9,s5,s9).tier.should == :flush
     end
     
     it "returns full house" do
@@ -104,7 +104,7 @@ describe Hand do
     end
     
     it "returns four of a kind" do
-      Hand.new(s9,d9,h9,c9,s1).tier.should == :four_of_a_kind
+      Hand.new(s9,d9,h9,c9,s14).tier.should == :four_of_a_kind
     end
     
     it "returns straight flush" do
@@ -112,35 +112,35 @@ describe Hand do
     end
     
     it "returns royal flush" do
-      Hand.new(s1,s13,s12,s11,s10).tier.should == :royal_flush
+      Hand.new(s14,s13,s12,s11,s10).tier.should == :royal_flush
     end
     
   end
   
-  describe "#is_a_better_hand?" do
+  describe "#<=>" do
     
     it "returns true if better different tiers" do
       straight = Hand.new(s1,s13,s12,s11,c10)
       two_pair = Hand.new(s10,c10,s9,d9,s1)
-      straight.is_a_better_hand?(two_pair).should == true
+      straight <=> two_pair.should == true
     end
     
     it "returns false if worse of different tiers" do
       full_house = Hand.new(s10,c10,s9,d9,h9)
       pair = Hand.new(s10,c10,s13,s12,s11)
-      pair.is_a_better_hand?(full_house).should == false
+      pair <=> full_house.should == false
     end
     
     it "returns true if better in same tier" do
       straight = Hand.new(s1,s13,s12,s11,c10)
       lower_straight = Hand.new(s1,s2,c3,d4,s5)
-      straight.is_a_better_hand(lower_straight).should == true
+      straight <=> lower_straight.should == true
     end
     
     it "returns false if worse in same tier" do
       straight = Hand.new(s13,s12,s11,c10,s9)
       higher_straight = Hand.new(s1,s13,s12,s11,c10)
-      straight.is_a_better_hand(higher_straight).should == false
+      straight <=> higher_straight.should == false
     end
   end
  
@@ -149,7 +149,7 @@ end
 describe Player do
   
   before do
-    @s1 = Card.new(:s,1)
+    @s1 = Card.new(:s,14)
     @s12 = Card.new(:s,12)
     @s11 = Card.new(:s,11)
     @s10 = Card.new(:s,10)
