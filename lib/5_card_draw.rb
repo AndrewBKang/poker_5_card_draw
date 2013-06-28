@@ -61,21 +61,7 @@ class Hand
     compare_imp_hi_card(self.numbers.sort,hand.numbers.sort)
   end
   
-  
   protected  
-  
-  def set_tiers
-    { :high_card        => 0,
-      :pair             => 1,
-      :two_pair         => 2,
-      :three_of_a_kind  => 3,
-      :straight         => 4,
-      :flush            => 5,
-      :full_house       => 6,
-      :four_of_a_kind   => 7,
-      :straight_flush   => 8,
-      :royal_flush      => 9  }
-  end
   
   # recursively look for highest important card
   def compare_imp_hi_card(nums1,nums2)
@@ -115,6 +101,18 @@ class Hand
     cards.map(&:suit)
   end
   
+  def set_tiers
+    { :high_card        => 0,
+      :pair             => 1,
+      :two_pair         => 2,
+      :three_of_a_kind  => 3,
+      :straight         => 4,
+      :flush            => 5,
+      :full_house       => 6,
+      :four_of_a_kind   => 7,
+      :straight_flush   => 8,
+      :royal_flush      => 9  }
+  end
   
 end
 
