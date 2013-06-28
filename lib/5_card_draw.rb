@@ -33,6 +33,7 @@ class Deck
         @cards << Card.new(suit,number)
       end
     end
+    
   end
 
 end
@@ -56,12 +57,13 @@ class Hand
     return :straight if straight?()
     return :three_of_a_kind if n_of_kind?(3)
     return :two_of_a_kind if n_of_kind?(2) && numbers.uniq = 3
+    :high_card
   end
   
   #compares two hands
   def <=>(hand)
-    compare = set_tiers[self.tier] <=> set_tiers[hand.tier]
-    return compare unless compare == 0
+    result = set_tiers[self.tier] <=> set_tiers[hand.tier]
+    return result unless result == 0
     compare_imp_hi_card(self.numbers.sort,hand.numbers.sort)
   end
   
@@ -83,9 +85,11 @@ class Hand
   
   #recursively look for highest different card
   def compare_imp_hi_card(nums1,nums2)
-    compare = imp_hi_card(nums1) <=> imp_hi_card(nums2) 
-    return compare if nums1.size == 1 || compare != 0
-    compare_imp_hi_card(nums1[0..-2],nums2[0..-2])
+    imp1 = imp_hi_card(nums1)
+    imp2 = imp_hi_card(nums2) 
+    result = imp1 <=> imp2
+    return result if nums1.size == 1 || compare != 0
+    compare_imp_hi_card(nums1.delete(imp1),nums2.delete(imp2))
   end
   
   #find the high card among cards of greatest occurence
@@ -124,5 +128,28 @@ class Hand
     cards.map {|card| card.suit}
   end
   
+  
+end
+
+class Player
+  
+  attr_accessor :hand, :pot
+  
+  def discard(string)
+    string.split(" ")
+    
+  end
+  
+  def fold
+    
+  end
+  
+  def see
+    
+  end
+  
+  def raise
+    
+  end
   
 end
