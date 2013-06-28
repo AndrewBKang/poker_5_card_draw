@@ -77,7 +77,7 @@ class Hand
       :royal_flush      => 9  }
   end
   
-  # recursively look for highest different card
+  # recursively look for highest important card
   def compare_imp_hi_card(nums1,nums2)
     imp1,imp2 = imp_hi_card(nums1),imp_hi_card(nums2)
     result = imp1 <=> imp2
