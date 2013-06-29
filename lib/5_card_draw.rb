@@ -54,28 +54,19 @@ class Hand
     :high_card
   end
   
-  #compares two hands
+  #Ke's infinitely better compare method
   def <=>(hand)
     result = set_tiers[self.tier] <=> set_tiers[hand.tier]
+    
     return result unless result == 0
-    compare_imp_hi_card(self.numbers.sort,hand.numbers.sort)
+    ke_sort(self.numbers) <=> ke_sort(hand.numbers)
   end
   
-  protected  
   
-  # recursively look for highest important card
-  def compare_imp_hi_card(nums1,nums2)
-    imp1,imp2 = imp_hi_card(nums1),imp_hi_card(nums2)
-    result = imp1 <=> imp2
-    return result if nums1.size == 1 || compare != 0
-    compare_imp_hi_card(nums1.delete(imp1),nums2.delete(imp2))
-  end
-  
-  # find the high card among cards of greatest occurence
-  def imp_hi_card(nums)
-    counts = []
-    nums.uniq.each {|num| counts << nums.count(num)}
-    nums.select{|num| nums.count(num) == counts.max}.max
+  protected 
+
+  def ke_sort(card_nums)
+    card_nums.sort_by{ |num| card_nums.count(num) * 15 + num }.reverse
   end
   
   # pairs(n=2), triples(n=3), quads(n=4)

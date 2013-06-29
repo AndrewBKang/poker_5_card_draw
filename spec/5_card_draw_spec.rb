@@ -119,28 +119,33 @@ describe Hand do
   
   describe "#<=>" do
     
-    it "returns true if better different tiers" do
+    it "returns 1 if better different tiers" do
       straight = Hand.new(s1,s13,s12,s11,c10)
       two_pair = Hand.new(s10,c10,s9,d9,s1)
-      straight <=> two_pair.should == true
+      straight <=> two_pair.should == 1
     end
     
-    it "returns false if worse of different tiers" do
+    it "returns -1 if worse of different tiers" do
       full_house = Hand.new(s10,c10,s9,d9,h9)
       pair = Hand.new(s10,c10,s13,s12,s11)
-      pair <=> full_house.should == false
+      pair <=> full_house.should == -1
     end
     
-    it "returns true if better in same tier" do
+    it "returns 1 if better in same tier" do
       straight = Hand.new(s1,s13,s12,s11,c10)
       lower_straight = Hand.new(s1,s2,c3,d4,s5)
-      straight <=> lower_straight.should == true
+      straight <=> lower_straight.should == 1
     end
     
-    it "returns false if worse in same tier" do
+    it "returns -1 if worse in same tier" do
       straight = Hand.new(s13,s12,s11,c10,s9)
       higher_straight = Hand.new(s1,s13,s12,s11,c10)
-      straight <=> higher_straight.should == false
+      straight <=> higher_straight.should == -1
+    end
+    
+    it "returns 0 if there is a draw" do
+      pair = 
+      pair =
     end
   end
  
@@ -206,8 +211,10 @@ describe Player do
   end
   
   describe "#raise" do 
-    it ""
     
+    it ""
+  
+  end
   
 end
 
