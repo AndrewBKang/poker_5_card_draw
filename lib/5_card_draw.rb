@@ -58,7 +58,6 @@ class Hand
     ke_sort(self.numbers) <=> ke_sort(hand.numbers)
   end
   
-  
   protected 
 
   def ke_sort(card_nums)
@@ -112,17 +111,60 @@ class Player
     @pot = 100
   end
   
+  def turn_check
+    print "Check Bet Fold\n"
+    choice = gets.chomp
+    case choice.downcase
+    when /^[c]/
+      return bet(0)
+    when /^[b]/
+      print "how much?\n"
+      return bet(gets.to_i)
+    when /^[f]/
+      return fold
+    else 
+      raise ArgumentError.new "type c b or f"
+    end
+  end
+  
+  def turn_call(amt)
+    print "Call Raise Fold"
+    choice = gets.chomp
+    case choice.downcase
+    when /^[c]/
+      return bet(amt)
+    when /^[r]/
+      return raiser(amt)
+    when /^[f]/
+    else
+    end
+      
+  end
+  
+  def raiser(amt)
+    print "Two-bet Three-bet Four-bet All-in Other"
+    choice = gets.chomp
+    case choice.downcase
+    when /^[t][w]/
+      bet(2 * amt)
+    when /^[t][h]/
+      bet(3 * amt)
+    when /^[f]/
+      bet(4 * amt)
+    when /^[a]/
+    when /^[o]/
+    else
+    end
+  end
+  
   def fold
     hand.cards = []
+    "folded"
   end
   
-  def see(bet)
-    self.pot > bet ? self.pot -= bet : (bet,self.pot = self.pot,0)
-    bet
-  end
-  
-  def raise
-    
+  def bet(amt)
+    self.pot > amt ? self.pot -= amt : (amt,self.pot = self.pot,0)
+    amt
   end
   
   def discard(str)
@@ -134,6 +176,7 @@ class Player
   
   private
   
+  # "s11, d10c9" => [[:s,11],[:d,10],[:c,9]]
   def discards(str)
     str.scan(/[shcd]/).zip(str.scan(/[2-9]|[1][0-4]/).map(&:to_i))
   end

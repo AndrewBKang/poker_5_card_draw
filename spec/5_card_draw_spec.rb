@@ -201,30 +201,30 @@ describe Player do
   
   describe "#see" do
     it "handles check" do
-      player.see(0).should == 0
+      player.bet(0).should == 0
     end
     
     it "pot doesn't change when check is made" do
-      player.see(0)
+      player.bet(0)
       player.pot.should == 100
     end
     
     it "returns the amount called" do
-      player.see(60).should == 60
+      player.bet(60).should == 60
     end
     
-    it "returns the amount called" do
-      player.see(30)
+    it "subtracts from own pot" do
+      player.bet(30)
       player.pot.should == 70
     end
     
     it "empties player pot if call is greater than player's pot" do
-      player.see(120)
+      player.bet(120)
       player.pot.should == 0
     end
     
     it "returns only as much as player has" do
-      player.see(120).should == 100
+      player.bet(120).should == 100
     end
     
   end
