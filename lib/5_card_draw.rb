@@ -12,22 +12,18 @@ end
 class Deck
   
   def initialize
-    @cards = []
     set_cards
   end
   
   def deal(player, num_of_cards = 5)
-    dealt_cards = []
-    num_of_cards.times { dealt_cards << @cards.shuffle.pop }
-    player.hand.cards += dealt_cards
+    num_of_cards.times { player.hand.cards << @cards.pop }
   end
   
   private
   
   def set_cards
-    suits = [:s,:h,:c,:d]
-    numbers = (2..14).to_a
-    @cards = suits.product(numbers).map{|suit,number| Card.new(suit,number)}
+    suits,numbers = [:s,:h,:c,:d],(2..14).to_a
+    @cards = suits.product(numbers).map{|s,n| Card.new(s,n)}.shuffle
   end
 
 end
@@ -36,21 +32,21 @@ class Hand
   
   attr_accessor :cards
   
-  def initialize(*cards)
-    @cards = cards
-    @tiers = set_tiers
+  def initialize
+    @cards = []
   end
   
   def tier
-    royal_straight? = numbers.sort == [10,11,12,13,14]
-    return :royal_flush if flush? && royal_straight?
+    royal_straight = numbers.sort == [10,11,12,13,14]
+    return :royal_flush if flush? && royal_straight
     return :straight_flush if flush? && straight?
     return :four_of_a_kind if n_of_kind?(4)
     return :full_house if n_of_kind?(2) && n_of_kind?(3)
     return :flush if flush?
-    return :straight if straight?()
+    return :straight if straight?
     return :three_of_a_kind if n_of_kind?(3)
-    return :two_of_a_kind if n_of_kind?(2) && numbers.uniq = 3
+    return :two_pair if n_of_kind?(2) && numbers.uniq.size == 3
+    return :pair if n_of_kind?(2)
     :high_card
   end
   
@@ -69,7 +65,6 @@ class Hand
     card_nums.sort_by{ |num| card_nums.count(num) * 15 + num }.reverse
   end
   
-  # pairs(n=2), triples(n=3), quads(n=4)
   def n_of_kind?(n)
     flag = false
     numbers.uniq.each {|num| flag = true if numbers.count(num) == n }
@@ -81,7 +76,8 @@ class Hand
   end  
   
   def straight?
-    numbers.sort == (numbers.first..numbers.first+4).to_a
+    numbers.sort == (numbers.min..numbers.min + 4).to_a || 
+    numbers.sort == [2,3,4,5,14]
   end
   
   def numbers
@@ -111,21 +107,43 @@ class Player
   
   attr_accessor :hand, :pot
   
-  def discard(string)
-    string.split(" ")
-    
+  def initialize
+    @hand = Hand.new
+    @pot = 100
   end
   
   def fold
-    
+    hand.cards = []
   end
   
-  def see
-    
+  def see(bet)
+    self.pot > bet ? self.pot -= bet : (bet,self.pot = self.pot,0)
+    bet
   end
   
   def raise
     
   end
+  
+  def discard(str)
+    discards = discards(str)
+    discards.product(hand.cards).each do |discard,card|
+      hand.cards.delete(card) if matching?(card,discard)
+    end
+  end
+  
+  private
+  
+  def discards(str)
+    str.scan(/[shcd]/).zip(str.scan(/[2-9]|[1][0-4]/).map(&:to_i))
+  end
+  
+  def matching?(card,discard)
+    card.suit.to_s == discard[0] && card.number == discard[1]
+  end
+  
+end
+
+class Game
   
 end

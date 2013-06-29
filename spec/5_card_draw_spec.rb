@@ -30,13 +30,13 @@ describe Deck do
   
   describe "#deal" do
     it "deals 52 different cards for 1 player" do
-      deck.deal(player,52)
-      player.hand.uniq.size.should == 52
+      @deck.deal(@player,52)
+      @player.hand.cards.uniq.size.should == 52
     end
     
     it "deals 5 cards for 1 player by default" do
-      deck.deal(player)
-      player.hand.uniq.size.should == 5
+      @deck.deal(@player)
+      @player.hand.cards.uniq.size.should == 5
     end
   end
   
@@ -44,8 +44,8 @@ end
 
 describe Hand do
   
-  attr_accessor :s14, :s13, :s12, :s11, :s10, :c10, :s9, :d9, :h9, :s2,
-   :c3, :d4, :s5
+  attr_accessor :s14, :s13, :s12, :s11, :s10, :c10, :s9, :d9, :h9, :c9, :s2,
+   :c3, :d4, :s5, :hand, :hand2
   
   before do
     @s14 = Card.new(:s,14)
@@ -62,57 +62,71 @@ describe Hand do
     @c3 = Card.new(:c,3)
     @d4 = Card.new(:d,4)
     @s5 = Card.new(:s,5)
+    @hand = Hand.new
+    @hand2 = Hand.new
   end
   
   describe "#cards" do
     it "returns an array of the cards" do
-      Hand.new(s14,s12,s11,s10,h9).cards.should == [s1,s12,s11,s10,h9]
+      hand.cards += [s14,s12,s11,s10,h9]
+      hand.cards.should == [s14,s12,s11,s10,h9]
     end
   end
   
   describe "#tier" do
     it "returns high card" do
-      Hand.new(s14,s12,s11,s10,h9).tier.should == :high_card
+      hand.cards += [s14,s12,s11,s10,h9]
+      hand.tier.should == :high_card
     end
       
     it "returns pair" do
-      Hand.new(s10,c10,s13,s12,s11).tier.should == :pair
+      hand.cards += [s10,c10,s13,s12,s11]
+      hand.tier.should == :pair
     end
     
     it "returns two pair" do
-      Hand.new(s10,c10,s9,d9,s14).tier.should == :two_pair
+      hand.cards += [s10,c10,s9,d9,s14]
+      hand.tier.should == :two_pair
     end
     
     it "returns three of a kind" do
-      Hand.new(s9,h9,d9,c10,s11).tier.should == :three_of_a_kind
+      hand.cards += [s9,h9,d9,c10,s11]
+      hand.tier.should == :three_of_a_kind
     end
     
     it "returns straight" do
-      Hand.new(s14,s13,s12,s11,c10).tier.should == :straight
+      hand.cards += [s14,s13,s12,s11,c10]
+      hand.tier.should == :straight
     end
     
     it "returns straight with ace in front" do
-      Hand.new(s14,s2,c3,d4,s5).tier.should == :straight
+      hand.cards += [s14,s2,c3,d4,s5]
+      hand.tier.should == :straight
     end
     
     it "returns flush" do
-      Hand.new(s14,s13,s9,s5,s9).tier.should == :flush
+      hand.cards += [s14,s13,s9,s5,s9]
+      hand.tier.should == :flush
     end
     
     it "returns full house" do
-      Hand.new(s10,c10,s9,d9,h9).tier.should == :full_house
+      hand.cards += [s10,c10,s9,d9,h9]
+      hand.tier.should == :full_house
     end
     
     it "returns four of a kind" do
-      Hand.new(s9,d9,h9,c9,s14).tier.should == :four_of_a_kind
+      hand.cards += [s9,d9,h9,c9,s14]
+      hand.tier.should == :four_of_a_kind
     end
     
     it "returns straight flush" do
-      Hand.new(s13,s12,s11,s10,s9).tier.should == :straight_flush
+      hand.cards += [s13,s12,s11,s10,s9]
+      hand.tier.should == :straight_flush
     end
     
     it "returns royal flush" do
-      Hand.new(s14,s13,s12,s11,s10).tier.should == :royal_flush
+      hand.cards += [s14,s13,s12,s11,s10]
+      hand.tier.should == :royal_flush
     end
     
   end
@@ -120,56 +134,61 @@ describe Hand do
   describe "#<=>" do
     
     it "returns 1 if better different tiers" do
-      straight = Hand.new(s1,s13,s12,s11,c10)
-      two_pair = Hand.new(s10,c10,s9,d9,s1)
-      straight <=> two_pair.should == 1
+      hand.cards += [s14,s13,s12,s11,c10]
+      hand2.cards += [s10,c10,s9,d9,s14]
+      (hand <=> hand2).should == 1
     end
     
     it "returns -1 if worse of different tiers" do
-      full_house = Hand.new(s10,c10,s9,d9,h9)
-      pair = Hand.new(s10,c10,s13,s12,s11)
-      pair <=> full_house.should == -1
+      hand.cards += [s10,c10,s9,d9,h9]
+      hand2.cards += [s10,c10,s13,s12,s11]
+      (hand2 <=> hand).should == -1
     end
     
     it "returns 1 if better in same tier" do
-      straight = Hand.new(s1,s13,s12,s11,c10)
-      lower_straight = Hand.new(s1,s2,c3,d4,s5)
-      straight <=> lower_straight.should == 1
+      hand.cards += [s14,s13,s12,s11,c10]
+      hand2.cards += [s14,s2,c3,d4,s5]
+      (hand <=> hand2).should == 1
     end
     
     it "returns -1 if worse in same tier" do
-      straight = Hand.new(s13,s12,s11,c10,s9)
-      higher_straight = Hand.new(s1,s13,s12,s11,c10)
-      straight <=> higher_straight.should == -1
+      hand.cards += [s13,s12,s11,c10,s9]
+      hand2.cards += [s14,s13,s12,s11,c10]
+      (hand <=> hand2).should == -1
     end
     
     it "returns 0 if there is a draw" do
-      pair = 
-      pair =
+      hand.cards += [s13,s12,s11,c9,s9]
+      hand2.cards += [s13,s12,s11,d9,h9]
+      (hand <=> hand2).should == 0
     end
+    
   end
  
 end
 
 describe Player do
   
+  attr_accessor :s14, :s12, :s11, :s10, :h9, :player
+  
   before do
-    @s1 = Card.new(:s,14)
+    @s14 = Card.new(:s,14)
     @s12 = Card.new(:s,12)
     @s11 = Card.new(:s,11)
     @s10 = Card.new(:s,10)
     @h9 = Card.new(:h,9)
   
     @player = Player.new
-    @player.hand = Hand.new(s1,s12,s11,s10,h9)
-    @player.pot = 100
+    player.hand.cards += [s14,s12,s11,s10,h9]
     
   end
   
   describe "#discard" do
     
-    player.discard("s1 s12 s11")
-    player.hand.cards.should == [s10,h9]
+    it "discards" do
+      player.discard("s14 s12 s11")
+      player.hand.cards.should == [s10,h9]
+    end
     
   end
   
@@ -205,14 +224,15 @@ describe Player do
     end
     
     it "returns only as much as player has" do
-      player.see(120) == 100
+      player.see(120).should == 100
     end
     
   end
   
   describe "#raise" do 
     
-    it ""
+    it "" do
+    end
   
   end
   
