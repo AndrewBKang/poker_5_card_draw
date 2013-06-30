@@ -1,10 +1,29 @@
+require 'colored'
 class Card
   
-  attr_accessor :suit, :number
+  attr_accessor :suit, :number, :symbol
   
   def initialize(suit,number)
     @suit = suit
     @number = number
+    set_symbol
+  end
+  
+  def set_symbol
+    suit_symbol = " \u2660 ".black_on_white if @suit == :s 
+    suit_symbol = " \u2665 ".red_on_white if @suit == :h
+    suit_symbol = " \u2663 ".black_on_white if @suit == :c
+    suit_symbol = " \u2666 ".red_on_white if @suit == :d
+    num = "#{number}".black_on_white unless number > 10
+    num = "J".black_on_white if number == 11
+    num = "Q".black_on_white if number == 12
+    num = "K".black_on_white if number == 13
+    num = "A".black_on_white if number == 14
+    @symbol = suit_symbol + num
+  end
+  
+  def black?
+    suit == :s || suit == :c
   end
   
 end
@@ -37,6 +56,7 @@ class Hand
   end
   
   def tier
+    return :empty if cards == []
     royal_straight = numbers.sort == [10,11,12,13,14]
     return :royal_flush if flush? && royal_straight
     return :straight_flush if flush? && straight?
@@ -88,7 +108,8 @@ class Hand
   end
   
   def set_tiers
-    { :high_card        => 0,
+    { :empty            => 0,
+      :high_card        => 0,
       :pair             => 1,
       :two_pair         => 2,
       :three_of_a_kind  => 3,
@@ -111,59 +132,80 @@ class Player
     @pot = 100
   end
   
+  def turn_discard
+    print "suit and number of cards you want to discard:\n"
+    num = gets
+    discard(num)
+  end
+  
   def turn_check
     print "Check Bet Fold\n"
     choice = gets.chomp
     case choice.downcase
     when /^[c]/
-      return bet(0)
+      result = bet(0)
     when /^[b]/
       print "how much?\n"
-      return bet(gets.to_i)
+      result = bet(gets.to_i)
     when /^[f]/
-      return fold
+      result = fold
     else 
       raise ArgumentError.new "type c b or f"
     end
+    result 
   end
   
   def turn_call(amt)
-    print "Call Raise Fold"
+    print "Call Raise Fold\n"
     choice = gets.chomp
     case choice.downcase
     when /^[c]/
-      return bet(amt)
+      result = bet(amt)
     when /^[r]/
-      return raiser(amt)
+      result = raiser(amt)
     when /^[f]/
+      result = fold
     else
+      raise ArgumentError.new "type c r or f"
     end
-      
+    result
   end
   
+  private
+  
   def raiser(amt)
-    print "Two-bet Three-bet Four-bet All-in Other"
+    print "Two-bet Three-bet Four-bet All-in Other\n"
     choice = gets.chomp
     case choice.downcase
     when /^[t][w]/
-      bet(2 * amt)
+      result = bet(amt)
     when /^[t][h]/
-      bet(3 * amt)
+      result = bet(2 * amt)
     when /^[f]/
-      bet(4 * amt)
+      result = bet(3 * amt)
     when /^[a]/
+      result = bet(self.pot)
     when /^[o]/
+      print "type amount:\n"
+      bets = gets.to_i
+      raise ArgumentError.new "type a larger amount" if bets < amt
+      result = bet(bets)
     else
+      raise ArgumentError.new "type: two three four all or other"
     end
+    result
   end
   
   def fold
     hand.cards = []
-    "folded"
+    print "player has folded\n"
+    0
   end
   
   def bet(amt)
+    raise ArgumentError.new "type a number!" unless amt.is_a? Integer
     self.pot > amt ? self.pot -= amt : (amt,self.pot = self.pot,0)
+    self.pot == 0 ? print("player is all-in\n") : print("player has bet: #{amt}\n") 
     amt
   end
   
@@ -172,9 +214,8 @@ class Player
     discards.product(hand.cards).each do |discard,card|
       hand.cards.delete(card) if matching?(card,discard)
     end
+    discards.size
   end
-  
-  private
   
   # "s11, d10c9" => [[:s,11],[:d,10],[:c,9]]
   def discards(str)
@@ -188,5 +229,153 @@ class Player
 end
 
 class Game
+  
+  def initialize
+    @plyrs = []
+    set_game
+    play
+  end
+  
+  private
+  
+  def set_game
+    print "----Poker 5 Card Draw ----\n"
+    set_players
+  end
+  
+  def play
+    until game_over?
+      round
+    end
+    "we have a winner!"
+  end
+  
+  def game_over?
+    @plyrs.select{|player| player.pot > 0}.size == 1
+  end
+  
+  def round
+    empty_hands
+    deal_cards
+    pots = 0
+    3.times do 
+      print "current pot: #{pots}\n"
+      pot = turn 
+      unless pot == nil
+        pots += pot
+      end
+    end
+    pots += bet_turn unless @plyrs.select{|player| player.hand.cards != []}.size == 1
+    winners(pots)
+  end
+  
+  def show_pots
+    @plyrs.each_with_index {|player,index| print "P#{index+1}:#{player.pot} "}
+    print "\n"
+  end
+  
+  def empty_hands
+    @plyrs.each {|player| player.hand.cards = []}
+  end
+  
+  def deal_cards
+    @deck = Deck.new
+    @plyrs.each { |player| @deck.deal(player) }
+  end
+  
+  def turn
+    unless @plyrs.select{|player| player.hand.cards != []}.size == 1
+      pots = 0
+      begin
+        pots += bet_turn
+      rescue ArgumentError => e
+        puts e
+        retry
+      end
+      discard_turn
+      pots
+    end
+  end
+  
+  def bet_turn
+    show_pots
+    pots = 0
+    plyrs = @plyrs.dup
+    went = []
+    amts = [0]
+    
+    until plyrs.size == 0
+      player = plyrs.shift
+      next if player.hand.cards == []
+      prev_pot = pots
+      display_cards(player)
+      print "Player #{@plyrs.index(player) + 1}'s bet turn\n"
+      pots += pots == 0 ? player.turn_check : player.turn_call(amts.max)
+      unless amts.include?(pots - prev_pot)
+        plyrs += went
+        went = []
+      end
+      amts << (pots - prev_pot)
+      went << player
+    end
+    pots
+  end
+  
+  def discard_turn
+    @plyrs.each_with_index do |player,index|
+      next if player.hand.cards == []
+      display_cards(player)
+      print "Player #{index+1}:\n"
+      @deck.deal(player,player.turn_discard)
+      display_cards(player)
+      print "\n"
+    end
+  end
+  
+  def winners(amt)
+    winners = []
+    @plyrs.product(@plyrs).each do |player1,player2|
+      case player1.hand <=> player2.hand
+      when 1
+        winners << player1
+      when -1
+        winners << player2
+      else 
+        winners += [player1,player2]
+      end
+    end
+    distribute_pot(winners,amt)
+  end
+  
+  def distribute_pot(winners,amt)
+    winners = winners.sort_by{|player| winners.count(player)}
+    counter = winners.count(winners.last)
+    winners = winners.uniq.select{|player| winners.count(player) == counter}
+    amt = amt.to_f / winners.size
+    winners.each {|player| player.pot += amt}
+  end
+  
+  def display_cards(player)
+    player.hand.cards.each{|card| print card.symbol }
+    print "\n"
+  end
+  
+  def set_players
+    @num_plyrs = ask_players
+    @num_plyrs.times {@plyrs << Player.new}
+  end
+  
+  def ask_players
+    begin
+      print "how many players?: "
+      num_play = gets.to_i
+      raise ArgumentError.new "type a number" unless num_play.to_i.is_a? Integer
+    rescue ArgumentError => e
+      puts e
+      retry
+    end
+    num_play
+  end
+  
   
 end
